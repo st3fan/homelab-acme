@@ -80,15 +80,15 @@ func (s *InMemoryReplayNonceService) Use(nonce string) error {
 
 func (s *InMemoryReplayNonceService) Cleanup() {
 	s.Lock()
-	s.Unlock()
 
 	now := time.Now()
-
 	for k, v := range s.nonces {
 		if v.used || now.Sub(v.created) > s.ttl {
 			delete(s.nonces, k)
 		}
 	}
+
+	s.Unlock()
 }
 
 func (s *InMemoryReplayNonceService) runCleanup() {

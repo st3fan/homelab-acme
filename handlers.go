@@ -29,7 +29,7 @@ func (app *application) handleGetDirectory(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (app *application) handleGetNonce(w http.ResponseWriter, _ *http.Request) {
+func (app *application) writeNonceResponse(w http.ResponseWriter, statusCode int) {
 	replayNonce, err := app.replayNonceService.New()
 	if err != nil {
 		app.logger.Error("Failed to generate nonce", "error", err)
@@ -39,18 +39,13 @@ func (app *application) handleGetNonce(w http.ResponseWriter, _ *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Replay-Nonce", replayNonce)
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(statusCode)
+}
+
+func (app *application) handleGetNonce(w http.ResponseWriter, _ *http.Request) {
+	app.writeNonceResponse(w, http.StatusNoContent)
 }
 
 func (app *application) handleHeadNonce(w http.ResponseWriter, _ *http.Request) {
-	replayNonce, err := app.replayNonceService.New()
-	if err != nil {
-		app.logger.Error("Failed to generate nonce", "error", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Cache-Control", "no-store")
-	w.Header().Set("Replay-Nonce", replayNonce)
-	w.WriteHeader(http.StatusOK)
+	app.writeNonceResponse(w, http.StatusOK)
 }
