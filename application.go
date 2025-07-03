@@ -3,22 +3,27 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 type application struct {
-	settings *settings
-	logger   *slog.Logger
-	handler  *http.ServeMux
+	settings           *settings
+	logger             *slog.Logger
+	handler            *http.ServeMux
+	replayNonceService *InMemoryReplayNonceService
 }
 
 func newApplication(settings *settings, logger *slog.Logger) (*application, error) {
 	app := &application{
-		settings: settings,
-		logger:   logger,
-		handler:  http.NewServeMux(),
+		settings:           settings,
+		logger:             logger,
+		handler:            http.NewServeMux(),
+		replayNonceService: NewInMemoryReplayNonceService(time.Hour, time.Hour),
 	}
 
 	app.handler.HandleFunc("GET /acme/directory", app.handleGetDirectory)
+	app.handler.HandleFunc("GET /acme/newNonce", app.handleGetNonce)
+	app.handler.HandleFunc("HEAD /acme/newNonce", app.handleHeadNonce)
 
 	return app, nil
 }
